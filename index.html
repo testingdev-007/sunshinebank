@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Careers Fair – Finance &amp; Tech Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html{background:#fff5cc}
+body{margin:0;min-height:100vh;font-family:'Fredoka','Arial Rounded MT Bold','Trebuchet MS',sans-serif;color:#2b2d42;
+  font-size:clamp(18px,2.2vw,24px);line-height:1.35;
+  background:
+    radial-gradient(circle at 10% 14%,rgba(255,255,255,.9) 0 44px,transparent 45px),
+    radial-gradient(circle at 15% 12%,rgba(255,255,255,.9) 0 34px,transparent 35px),
+    radial-gradient(circle at 88% 9%,rgba(255,255,255,.85) 0 38px,transparent 39px),
+    radial-gradient(circle at 93% 11%,rgba(255,255,255,.85) 0 28px,transparent 29px),
+    linear-gradient(#a9e2ff 0%,#d8f3ff 45%,#fff5cc 100%);}
+main{max-width:1100px;margin:0 auto;padding:28px 18px 50px}
+header{text-align:center;margin-bottom:28px}
+header .em{font-size:clamp(50px,8vw,80px);line-height:1}
+h1{font-size:clamp(40px,7vw,76px);margin:.15em 0;color:#FF6B6B;text-shadow:0 5px 0 #fff,0 9px 0 rgba(0,0,0,.12)}
+header p{font-size:1.25em;font-weight:600;margin:.3em 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
+.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:#fff;border-radius:36px;overflow:hidden;
+  box-shadow:0 12px 0 rgba(0,0,0,.14);transition:transform .12s,box-shadow .12s;border:6px solid var(--c)}
+.card:hover{transform:translateY(-6px) rotate(-.6deg)}
+.card:active{transform:translateY(6px);box-shadow:0 4px 0 rgba(0,0,0,.14)}
+.card:focus-visible{outline:6px solid #2b2d42;outline-offset:6px}
+.top{background:var(--c);color:#fff;text-align:center;padding:26px 18px 22px;text-shadow:0 3px 0 rgba(0,0,0,.15)}
+.top .em{font-size:4.2em;line-height:1.05;text-shadow:none}
+.top h2{font-size:2em;margin:.15em 0 0}
+.age{display:inline-block;margin-top:10px;background:rgba(255,255,255,.25);border-radius:999px;padding:6px 18px;font-weight:600}
+.body{padding:22px 26px 26px;display:flex;flex-direction:column;gap:14px;flex:1}
+.body p{margin:0}
+.body ul{margin:0;padding-left:1.2em}
+.body li{margin:.2em 0}
+.go{margin-top:auto;align-self:center;background:var(--c);color:#fff;border-radius:24px;padding:14px 34px;font-weight:700;font-size:1.15em;
+  box-shadow:0 7px 0 rgba(0,0,0,.2);text-shadow:0 2px 0 rgba(0,0,0,.15)}
+footer{text-align:center;margin-top:34px;font-weight:500;opacity:.8;font-size:.85em}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="em">💷 💻</div>
+    <h1>Jobs in Finance &amp; Tech</h1>
+    <p>Pick a game and find out what people really do at work!</p>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="sunshine-bank.html" style="--c:#FF6F9C">
+      <div class="top"><div class="em">☀️🏦</div><h2>Sunshine Bank</h2><span class="age">Younger students · ages 4–8</span></div>
+      <div class="body">
+        <p>Come and work at Sunshine Bank! Count coins into the piggy bank, help animal customers, code a robot to use the cash machine and spot sneaky scams.</p>
+        <ul>
+          <li>🐷 Short jobs with big buttons, and everything is read aloud</li>
+          <li>⭐ Earn a badge for every job you finish</li>
+          <li>🏆 Finish 3 jobs to get your Bank Star certificate</li>
+        </ul>
+        <span class="go">Visit the bank ➡️</span>
+      </div>
+    </a>
+
+    <a class="card" href="hired.html" style="--c:#3D86F5">
+      <div class="top"><div class="em">🎲💼</div><h2>Hired!</h2><span class="age">Older students · ages 8+</span></div>
+      <div class="body">
+        <p>Play Hired!, the recruitment game. Roll the dice to show off skills, fill tech and finance jobs and beat the AI recruiter to the best candidates.</p>
+        <ul>
+          <li>🎯 Push your luck: keep rolling or play it safe?</li>
+          <li>🃏 Flip job cards to find out what each role really involves</li>
+          <li>🎤 Pass the job interview to win the role</li>
+        </ul>
+        <span class="go">Play Hired! ➡️</span>
+      </div>
+    </a>
+  </div>
+
+  <footer>Not sure which one? If you're under 8, start at Sunshine Bank. 8 or over, try Hired!</footer>
+</main>
+</body>
+</html>

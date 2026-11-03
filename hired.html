@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hired! The Career Dice Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f1f;--panel:#131a31;--panel2:#1c2546;--ink:#eef2ff;--mute:#94a0c4;--you:#2dd4bf;--ai:#fb7185;--gold:#fbbf24;--line:#283463}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;background:radial-gradient(1000px 600px at 15% -10%,#22307000,#0a0f1f),radial-gradient(800px 500px at 100% 0%,#3b1f6a55,transparent),var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+.app{max-width:860px;margin:0 auto;padding:10px 12px 170px}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.45rem}
+.logo span{color:var(--gold)}
+.mode{font-size:.7rem;color:var(--mute);margin-left:6px;font-family:Inter;font-weight:600}
+.ib{width:38px;height:38px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-size:1.05rem}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 8px}
+.pill{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:8px 10px;text-align:left;transition:.2s}
+.pill.on.p0{border-color:var(--you);box-shadow:0 0 22px #2dd4bf30}
+.pill.on.p1{border-color:var(--ai);box-shadow:0 0 22px #fb718530}
+.pill .row{display:flex;justify-content:space-between;align-items:center}
+.pill .nm{font-weight:800;font-size:.9rem}
+.pill .pts{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700}
+.secs{display:flex;gap:4px;margin-top:4px;align-items:center}
+.sec{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:.72rem;background:#ffffff10;filter:grayscale(1);opacity:.35;position:relative}
+.sec.got{filter:none;opacity:1}
+.sec b{position:absolute;right:-4px;top:-5px;font-size:.55rem;background:#fff;color:#000;border-radius:6px;padding:0 3px}
+.ladder{display:flex;gap:3px;margin-top:5px}
+.rung{flex:1;height:8px;border-radius:4px;background:#ffffff14}
+.rung.done.p0{background:var(--you)}.rung.done.p1{background:var(--ai)}
+.rung.cur{background:repeating-linear-gradient(45deg,#ffffff30 0 4px,#ffffff10 4px 8px)}
+.rlab{font-size:.65rem;color:var(--mute);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oldstatus{text-align:center;font-weight:800;font-size:1.05rem;margin:6px 0 10px;min-height:1.4em}
+.status small{display:block;font-weight:500;color:var(--mute);font-size:.78rem;margin-top:2px}
+.status.ai{color:var(--ai)}
+.board{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:760px){.board.m4{grid-template-columns:repeat(4,1fr)}}
+.job{background:#f8fafc;color:#0f172a;border-radius:16px;overflow:hidden;text-align:left;position:relative;border:3px solid transparent;transition:transform .15s,border-color .15s,box-shadow .15s;display:flex;flex-direction:column}
+.job .hd{background:var(--c);color:#fff;padding:5px 8px;font-size:.66rem;font-weight:800;display:flex;justify-content:space-between;align-items:center;letter-spacing:.3px}
+.stars{letter-spacing:1px;font-size:.7rem}
+.stars i{font-style:normal;opacity:.35}
+.job .tt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.98rem;padding:6px 8px 4px;line-height:1.1;min-height:2.3em}
+.job.can{cursor:pointer;box-shadow:0 0 0 2px #fbbf24aa}
+.job.can:hover{transform:translateY(-2px)}
+.job.focus{border-color:var(--gold);box-shadow:0 0 24px #fbbf2466}
+.job.aifocus{border-color:var(--ai);box-shadow:0 0 24px #fb718566}
+.job.dead{opacity:.55}
+.rqs{display:flex;flex-direction:column;gap:4px;padding:0 6px 6px}
+.rq{display:flex;justify-content:space-between;align-items:center;background:#e8edf5;border-radius:10px;padding:5px 7px;border:2px solid transparent;font-size:1.05rem;min-height:32px}
+@media(max-width:520px){.rq{padding:3px 6px;font-size:.92rem;min-height:28px}.job .tt{font-size:.9rem;min-height:2.2em}.perk{padding:5px 7px}}
+.rq .ic span{opacity:.28;filter:grayscale(.6)}
+.rq .ic span.f{opacity:1;filter:none}
+.rq .v{font-size:.7rem;font-weight:800;color:#475569;display:flex;gap:4px;align-items:center}
+.rq.o0{background:#99f6e4}.rq.o1{background:#fecdd3}
+.rq.o0 .ic span,.rq.o1 .ic span{opacity:1;filter:none}
+.rq.cur{border-color:#0284c7;background:#e0f2fe}
+.rq.tap{cursor:pointer}
+.tok{width:14px;height:14px;border-radius:50%;display:inline-block}
+.tok.p0{background:#0d9488}.tok.p1{background:#e11d48}
+.perk{margin-top:auto;font-size:.68rem;font-weight:700;color:#4338ca;background:#eef2ff;padding:6px 8px;display:flex;justify-content:space-between;gap:4px;cursor:pointer}
+.perk span{opacity:.6}
+.tray{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px 10px;margin-bottom:10px}
+.tray .lbl{font-size:.68rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between}
+.dice{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:66px;align-items:center;margin:8px 0}
+.die{width:58px;height:58px;border-radius:14px;background:linear-gradient(160deg,#fff,#dfe5f0);color:#000;font-size:1.75rem;display:grid;place-items:center;box-shadow:0 4px 0 #8391b3,0 6px 14px #0006;position:relative}
+.die.tap{cursor:pointer}
+.die.ok{box-shadow:0 4px 0 #b45309,0 0 0 3px var(--gold)}
+.die.dim{opacity:.4}
+.die.sm{width:36px;height:36px;font-size:1.05rem;border-radius:10px;box-shadow:0 2px 0 #8391b3}
+.die.tumble{animation:tumble .55s ease-out}
+@keyframes tumble{0%{transform:translateY(-30px) rotate(-260deg) scale(.6);opacity:.2}70%{transform:translateY(4px) rotate(10deg)}100%{transform:none;opacity:1}}
+.locked{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:38px;align-items:center}
+.empty{color:var(--mute);font-size:.8rem}
+.bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,#0a0f1fee 22%);padding:22px 12px calc(12px + env(safe-area-inset-bottom))}
+.bar .in{max-width:860px;margin:0 auto}
+.meter{display:flex;align-items:center;gap:8px;font-size:.74rem;font-weight:800;margin-bottom:8px;color:var(--mute)}
+.meter .track{flex:1;height:10px;border-radius:5px;background:#ffffff14;overflow:hidden}
+.meter .fill{height:100%;border-radius:5px;transition:width .3s}
+.stake{color:var(--gold)}
+.btns{display:flex;gap:8px}
+.big{flex:1;padding:15px 10px;border-radius:16px;font-weight:800;font-size:1.05rem;transition:transform .08s,opacity .2s}
+.big:active{transform:scale(.97)}
+.big:disabled{opacity:.25;cursor:not-allowed}
+.roll{background:var(--you);color:#042f2a;box-shadow:0 5px 0 #0f766e}
+.bank{background:var(--gold);color:#3a2600;box-shadow:0 5px 0 #b45309}
+.ticker{margin-top:10px;font-size:.74rem;color:var(--mute);text-align:center;line-height:1.6}
+.ticker b.p0{color:var(--you)}.ticker b.p1{color:var(--ai)}
+.offers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.oh{grid-column:1/-1;text-align:center;color:var(--mute);font-size:.8rem;font-weight:700}
+.rival{margin-top:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 10px;font-size:.78rem;color:var(--mute);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.rival .mini{display:flex;gap:4px;flex-wrap:wrap}
+.mini span{background:#ffffff12;border-radius:6px;padding:1px 5px}
+.mini span.o1{background:#fb718555;color:#fff}
+.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;padding:14px;z-index:50;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.box h2{font-family:'Space Grotesk',sans-serif;margin:0 0 6px;font-size:1.4rem}
+.box p{color:#cbd3ee;font-size:.9rem;line-height:1.45;margin:6px 0}
+.steps{list-style:none;padding:0;margin:10px 0}
+.steps li{display:flex;gap:10px;align-items:flex-start;margin:9px 0;font-size:.9rem;line-height:1.35;color:#dbe2f7}
+.steps li .e{font-size:1.3rem;width:30px;flex:none;text-align:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.legend span{background:var(--panel2);border-radius:9px;padding:5px 8px;font-size:.78rem}
+.modes{display:grid;gap:10px;margin-top:12px}
+.mt{display:flex;gap:12px;align-items:center;background:var(--panel2);border:2px solid var(--line);border-radius:16px;padding:14px;text-align:left;transition:.15s}
+.mt:hover{border-color:var(--gold);transform:translateY(-2px)}
+.mt .e{font-size:2rem}
+.mt b{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;display:block}
+.mt small{color:var(--mute);font-size:.8rem;line-height:1.3;display:block}
+.tag{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:999px;background:#ffffff18;margin-left:6px;vertical-align:middle;font-family:Inter}
+.go{background:var(--you);color:#042f2a;font-weight:800;padding:13px 18px;border-radius:14px;width:100%;margin-top:8px;font-size:1rem}
+.ghost{background:var(--panel2);border:1px solid var(--line);font-weight:700;padding:11px 16px;border-radius:12px}
+.toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.9rem;text-align:center;background:#000d;padding:14px 26px;border-radius:20px;animation:pop 1.5s forwards;max-width:90vw}
+.toast small{display:block;font-size:1rem;color:var(--gold);margin-top:2px}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}82%{opacity:1}100%{opacity:0}}
+.mini-toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:#000e;padding:8px 14px;border-radius:12px;font-size:.85rem;z-index:61;animation:pop2 1.3s forwards;pointer-events:none}
+@keyframes pop2{0%{opacity:0}10%{opacity:1}80%{opacity:1}100%{opacity:0}}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.cf{position:fixed;top:-10px;width:9px;height:14px;z-index:70;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+table.sc{width:100%;border-collapse:collapse;margin:8px 0;font-size:.88rem}
+table.sc td,table.sc th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left}
+.chip{display:inline-block;font-size:.7rem;padding:3px 8px;border-radius:999px;color:#fff;margin:2px;font-weight:700}
+
+.coach{background:var(--panel2);border:2px solid var(--line);border-radius:16px;padding:10px 12px;font-weight:800;font-size:1.02rem;line-height:1.3;text-align:center;margin-bottom:8px}
+.coach small{display:block;font-weight:500;color:var(--mute);font-size:.8rem;margin-top:3px}
+.coach.ai{border-color:var(--ai);color:#ffd0d8}
+.stepper{display:flex;gap:4px;margin-bottom:8px}
+.stepper span{flex:1;text-align:center;font-size:.64rem;font-weight:800;padding:5px 2px;border-radius:9px;background:#ffffff0d;color:var(--mute)}
+.stepper span.on{background:var(--gold);color:#3a2600}
+.stepper span.past{color:var(--you)}
+.rq.can{border-color:#f59e0b;background:#fef3c7;animation:pulse 1.3s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px #fbbf2455}}
+.rq.cur{border-color:#0284c7;background:#e0f2fe;box-shadow:0 0 0 3px #38bdf855}
+.fb{font-size:.58rem;background:#0284c7;color:#fff;border-radius:6px;padding:2px 5px;letter-spacing:.5px}
+.tok{width:auto;height:auto;background:none!important;font-size:.85rem}
+.badge{margin:0 6px 4px;font-size:.66rem;font-weight:800;background:#fff7ed;color:#c2410c;border-radius:8px;padding:3px 6px;text-align:center}
+.die{flex-direction:column;line-height:1}
+.die small{font-size:.48rem;font-weight:800;color:#475569;text-transform:uppercase;margin-top:3px;font-family:Inter}
+.die.ok{box-shadow:0 4px 0 #b45309,0 0 0 3px var(--gold),0 0 16px #fbbf2499}
+.stop{background:var(--gold);color:#3a2600;box-shadow:0 5px 0 #b45309}
+.big{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.big small{font-size:.7rem;font-weight:700;opacity:.8;margin-top:2px}
+.board.one{grid-template-columns:1fr;max-width:360px;margin:0 auto}
+.job.pick{cursor:pointer;box-shadow:0 0 0 3px #fbbf24aa}
+.tip{background:#fbbf2418;border:1px solid #fbbf2444;border-radius:12px;padding:8px 10px}
+.aitray{border-color:#fb718566}
+.meter{flex-wrap:wrap}
+.cc{display:grid;gap:6px;margin:10px 0}
+.cc div{background:var(--panel2);border-radius:12px;padding:8px 10px;font-size:.86rem;line-height:1.4;color:#dbe2f7}
+.cc b{display:block;font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
+.quiz{border:2px solid #2dd4bf55;border-radius:14px;padding:10px;margin-top:8px}
+.qh{font-weight:800;font-size:.8rem;display:flex;justify-content:space-between;gap:6px;color:var(--you)}
+.qh span{color:var(--gold)}
+.qo{display:grid;gap:6px;margin-top:6px}
+.qb{background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:11px;font-weight:700;text-align:left;font-size:.92rem}
+.qb:hover:not(:disabled){border-color:var(--gold)}
+.qb.right{border-color:#22c55e;background:#14532d}
+.qb.wrong{border-color:#ef4444;background:#450a0a}
+.good{color:#86efac;font-weight:700}.bad{color:#fca5a5;font-weight:700}
+.work{background:#0008;border-radius:12px;padding:10px;font-size:.9rem;line-height:1.7}
+.mute{color:var(--mute);font-size:.8rem}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.8em;line-height:1.05;margin:0 2px}
+.frac span:first-child{border-bottom:1.5px solid currentColor;padding:0 2px}
+.otag{margin:6px 6px 0;font-size:.68rem;font-weight:800;background:#0f172a;color:#fde68a;border-radius:8px;padding:3px 7px;display:inline-block}
+.odesc{font-size:.72rem;color:#475569;padding:0 8px 6px;line-height:1.3}
+.learn{background:#2dd4bf14;border:1px solid #2dd4bf44;border-radius:12px;padding:10px;font-size:.86rem;line-height:1.6;margin:10px 0}
+.box .btns{display:flex;gap:8px}
+.job{background:transparent!important;display:block!important;perspective:1100px;overflow:visible!important;border:none!important;box-shadow:none!important}
+.c3{display:grid;transition:transform .55s cubic-bezier(.3,.7,.3,1);transform-style:preserve-3d;border-radius:16px;border:3px solid transparent;height:100%}
+.c3.on{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#f8fafc;border-radius:13px;overflow:hidden;display:flex;flex-direction:column}
+.bk{transform:rotateY(180deg);background:#fffbeb}
+.job.focus .c3{border-color:var(--gold);box-shadow:0 0 24px #fbbf2466}
+.job.aifocus .c3{border-color:var(--ai);box-shadow:0 0 24px #fb718566}
+.job.pick .c3{box-shadow:0 0 0 3px #fbbf24aa;cursor:pointer}
+.job.dead .face{opacity:.55}
+.job.dead{opacity:1!important}
+.fl{font-size:.68rem;font-weight:800;color:#0f172a;background:#e2e8f0;padding:7px;border-top:1px solid #cbd5e1;width:100%}
+.fl:hover{background:#fde68a}
+.bkb{display:grid;gap:4px;padding:4px 7px 7px;flex:1}
+.bkb div{font-size:.68rem;line-height:1.3;color:#334155}
+.bkb b{display:block;font-size:.6rem;letter-spacing:.4px;text-transform:uppercase;color:#b45309}
+.pkb{position:absolute;top:-7px;right:-7px;font-style:normal;font-size:.8rem;background:#7c3aed;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;box-shadow:0 0 10px #a78bfa}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="bar" id="bar"></div>
+<div id="modal"></div>
+<script>
+// ================= DATA =================
+const SYM={code:{e:'💻',n:'Code'},data:{e:'📊',n:'Data'},money:{e:'💷',n:'Finance'},people:{e:'🤝',n:'People'},wild:{e:'⭐',n:'Talent'},extra:{e:'🔗',n:'Network'}};
+const FACES=['code','data','money','people','wild','extra'];
+const FAC={eng:{n:'Engineering',i:'🛠️',c:'#3b82f6'},data:{n:'Data & AI',i:'🧠',c:'#8b5cf6'},cyber:{n:'Cyber',i:'🛡️',c:'#10b981'},bank:{n:'Banking',i:'🏦',c:'#f59e0b'},prod:{n:'Product',i:'📱',c:'#ec4899'}};
+const LV=['','Entry','Junior','Senior','Leadership'];
+const CARDS=[
+['eng',1,'Junior Developer','Builds and tests small features with support from seniors.',[['code',1],['data',1],['people',1]],['SINGLE','code','Pair programming','A senior helps turn one line of code into something great.']],
+['eng',0,'Software Apprentice','Earns while learning to code on real projects.',[['code',1],['people',1],['money',1],['wild',1]],['BUST2',null,'Learning from mistakes','Apprentices come back stronger after something goes wrong.']],
+['eng',0,'Front-end Developer','Builds the screens and buttons users actually see.',[['code',2],['people',2],['data',1]],['REROLL',null,'Hot reload','Front-end devs see a change and try again instantly.']],
+['eng',0,'DevOps Engineer','Automates how code is built, tested and released.',[['code',3],['data',2],['money',1]],['START6',null,'Automation','Automated pipelines get more done every turn.']],
+['eng',0,'Senior Software Engineer','Designs systems and mentors junior developers.',[['code',3],['people',2],['wild',1],['data',1]],['THREE','code','Ship it','Enough solid code and the feature just lands.']],
+['eng',0,'Head of Engineering','Leads engineering teams and sets technical strategy.',[['code',4],['people',3],['wild',2]],['EXTRA2','code','Delegation','Leaders get the coding done through their team.']],
+['data',1,'Graduate Data Analyst','Turns spreadsheets into charts and insights.',[['data',1],['money',1],['code',1]],['SINGLE','data','Spot the outlier','One odd data point can be the key insight.']],
+['data',0,'Data Apprentice','Cleans and organises data while training on the job.',[['data',1],['people',1],['code',1],['money',1]],['BUST2',null,'Learning from mistakes','Apprentices come back stronger after something goes wrong.']],
+['data',0,'Junior ML Engineer','Trains machine-learning models and puts them into products.',[['code',2],['data',2],['wild',1]],['EXTRA2','data','Training data','Connections bring in more data to train models on.']],
+['data',0,'Data Scientist','Uses statistics to predict trends and answer big questions.',[['data',3],['code',2],['money',1]],['THREE','data','Statistically significant','Enough evidence settles the question.']],
+['data',0,'AI Research Engineer','Experiments with new AI techniques and models.',[['data',3],['code',3],['people',1]],['START6',null,'Extra compute','More processing power means more attempts.']],
+['data',0,'Chief Data Officer','Decides how a whole organisation uses its data.',[['data',4],['people',2],['money',2],['wild',1]],['SAFE',null,'Data governance','Good governance means one mistake doesn\'t undo everything.']],
+['cyber',1,'SOC Analyst Apprentice','Watches security alerts in a Security Operations Centre.',[['code',1],['people',1],['data',1]],['SINGLE','people','Alert triage','One call to the right person can crack a case.']],
+['cyber',0,'Junior Pen Tester','Ethically hacks systems to find weak spots.',[['code',2],['data',1],['wild',1]],['REROLL',null,'Try another exploit','If one attack fails, pen testers try a different one.']],
+['cyber',0,'Security Analyst','Investigates incidents and strengthens defences.',[['data',2],['people',2],['code',1]],['SAFE',null,'Incident response','Catching problems early limits the damage.']],
+['cyber',0,'Penetration Tester','Leads simulated attacks against real systems.',[['code',3],['wild',1],['data',2]],['THREE','code','Exploit found','Enough code and you\'re through the defences.']],
+['cyber',0,'Security Architect','Designs secure systems from the ground up.',[['code',3],['data',3],['money',1]],['START6',null,'Defence in depth','Layered defences give you more to work with.']],
+['cyber',0,'CISO','Chief Information Security Officer: owns cyber risk for the business.',[['people',4],['code',2],['data',2],['wild',1]],['SAFE',null,'Risk owner','Managing risk is the CISO\'s whole job.']],
+['bank',1,'Graduate Analyst','Builds financial models and supports deal teams.',[['money',1],['data',1],['people',1]],['SINGLE','money','Model check','One number checked carefully goes a long way.']],
+['bank',0,'Banking Apprentice','Supports customers and operations while studying.',[['money',1],['people',1],['data',1],['wild',1]],['BUST2',null,'Learning from mistakes','Apprentices come back stronger after something goes wrong.']],
+['bank',0,'Junior Trader','Buys and sells assets in fast-moving markets.',[['money',2],['data',2],['wild',1]],['BUST2',null,'Stop-loss','Good traders limit the damage when a bet goes wrong.']],
+['bank',0,'Risk Analyst','Measures what could go wrong and what it would cost.',[['money',3],['data',2],['people',1]],['SAFE',null,'Risk controls','Measuring risk means one bad day isn\'t a disaster.']],
+['bank',0,'Quant Developer','Codes the maths models that price and trade assets.',[['money',3],['code',3],['data',1]],['THREE','money','Algorithm executes','When the numbers line up, the trade goes through.']],
+['bank',0,'Head of Trading','Runs a trading desk and its risk limits.',[['money',4],['people',2],['wild',2]],['EXTRA2','money','Client network','Contacts bring in big business.']],
+['prod',1,'Junior Product Analyst','Tracks how customers use an app and reports back.',[['people',1],['money',1],['code',1]],['REROLL',null,'A/B test','Not convinced? Test the other version.']],
+['prod',0,'UX Designer','Designs apps that are easy and pleasant to use.',[['people',2],['code',1],['wild',1]],['SINGLE','people','User interview','One good conversation can reshape a design.']],
+['prod',0,'Business Analyst','Translates business needs into clear requirements.',[['people',2],['money',2],['data',1]],['EXTRA2','people','Stakeholder network','Knowing the right people counts double.']],
+['prod',0,'Product Manager','Decides what to build next, and why.',[['people',3],['money',2],['code',1]],['THREE','people','Roadmap agreed','Get enough people on board and it happens.']],
+['prod',0,'Delivery Lead','Keeps agile teams shipping on time.',[['people',3],['code',2],['wild',1]],['BUST2',null,'Retrospective','Agile teams learn something from every failed sprint.']],
+['prod',0,'Chief Product Officer','Owns the product vision for the whole company.',[['people',4],['money',3],['wild',2]],['START6',null,'Product vision','A clear vision gets more done every turn.']]
+];
+function perkShort(a){const e=a.s?SYM[a.s].e:'';return{SINGLE:`A lone ${e} counts as ⭐`,BUST2:`Bust? +1 die next turn`,REROLL:`Bust on 1st roll? Re-roll`,START6:`Start with 6 dice`,THREE:`Roll 3+ ${e}: box filled`,EXTRA2:`🔗 counts as ${e}${e}`,SAFE:`Bust? Keep 1 filled box`}[a.t];}
+function perkLong(a){const s=a.s?`${SYM[a.s].e} ${SYM[a.s].n}`:'';return{SINGLE:`If you roll exactly one ${s}, it can be used as a ⭐ Talent die.`,BUST2:`Whenever you bust, you start your next turn with an extra die.`,REROLL:`If your first roll of a turn would be a bust, you get a free re-roll.`,START6:`Start every turn with 6 dice instead of 5.`,THREE:`If a roll has 3 or more ${s} (and your focus box already has a die in it), your focus box is filled instantly.`,EXTRA2:`🔗 Network dice can be used as two ${s} (but then they don't bring in an extra die).`,SAFE:`When you bust, you keep the first box you filled that turn.`}[a.t];}
+const makeCards=()=>CARDS.map((c,i)=>({id:i,f:c[0],starter:!!c[1],title:c[2],desc:c[3],reqs:c[4].map(([s,n])=>({s,n,owner:null})),ab:{t:c[5][0],s:c[5][1],name:c[5][2],why:c[5][3]}}));
+const lvl=c=>Math.max(...c.reqs.map(r=>r.n));
+const rv=r=>r.s==='wild'?r.n*2:r.n;
+
+
+// ================= UTIL =================
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+let SPEED=1;const sleep=ms=>new Promise(r=>setTimeout(r,ms*SPEED));
+let G=null,busy=false,dieSeq=0,soundOn=true,actx=null;
+const P=()=>G.players[G.cur];
+const nm=i=>`<b class="p${i}">${G.players[i].name}</b>`;
+const hints=()=>G.mode!=='tactics';
+function tick(h){G.tick.unshift(h);G.tick.length=Math.min(G.tick.length,3);}
+function sfx(k){if(!soundOn||SPEED<1)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const seq={roll:[[300,.03],[420,.03],[350,.03]],ding:[[880,.08],[1320,.12]],bust:[[200,.15],[120,.25]],hire:[[660,.1],[880,.1],[1100,.2]],tap:[[600,.03]],no:[[160,.08]]}[k];let t=actx.currentTime;seq.forEach(([f,d])=>{const o=actx.createOscillator(),g=actx.createGain();o.type=k==='bust'||k==='no'?'sawtooth':'triangle';o.frequency.value=f;g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d);t+=d*.9;});}catch(e){}}
+function toast(h,sub){const t=document.createElement('div');t.className='toast';t.innerHTML=h+(sub?`<small>${sub}</small>`:'');document.body.appendChild(t);setTimeout(()=>t.remove(),1600*Math.max(SPEED,.01));}
+function mini(h){document.querySelectorAll('.mini-toast').forEach(x=>x.remove());const t=document.createElement('div');t.className='mini-toast';t.innerHTML=h;document.body.appendChild(t);setTimeout(()=>t.remove(),1600);}
+function confetti(){if(SPEED<1)return;const cols=['#2dd4bf','#fbbf24','#fb7185','#8b5cf6','#3b82f6'];for(let i=0;i<60;i++){const c=document.createElement('div');c.className='cf';c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];c.style.animationDuration=(1.2+Math.random()*1.4)+'s';c.style.animationDelay=Math.random()*.3+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3200);}}
+function shake(el){if(!el)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');sfx('no');}
+function modal(h){document.getElementById('modal').innerHTML=`<div class="modal"><div class="box">${h}</div></div>`;}
+function closeModal(){document.getElementById('modal').innerHTML='';}
+const pct=x=>Math.round(x*100);
+
+// ================= CAREERS DATA =================
+// route = how people usually get in; subj = school subjects that help
+const CAREER={
+'Junior Developer':['A computer science degree, a coding bootcamp, or moving up after a software apprenticeship.','Computing, Maths'],
+'Software Apprentice':['A paid software development apprenticeship (Level 3 or 4) straight after GCSEs or A-levels. No degree needed.','Computing, Maths, English'],
+'Front-end Developer':['A degree, an apprenticeship, or teaching yourself and building a strong portfolio of websites.','Computing, Art & Design, Maths'],
+'DevOps Engineer':['Usually a few years as a developer or in IT support first.','Computing, Maths'],
+'Senior Software Engineer':['Several years of experience as a developer.','Computing, Maths'],
+'Head of Engineering':['An experienced engineer who moves into leading people and teams.','Computing, English, Business'],
+'Graduate Data Analyst':['A degree in maths, statistics, economics or a science, then a graduate job.','Maths, Computing'],
+'Data Apprentice':['A paid data analyst apprenticeship (Level 4) after A-levels or college.','Maths, Computing'],
+'Junior ML Engineer':['A computer science or maths degree, often followed by a master\'s.','Maths, Further Maths, Computing'],
+'Data Scientist':['A maths, statistics or science degree. Many also have a master\'s or PhD.','Maths, Further Maths, Computing'],
+'AI Research Engineer':['A strong computer science or maths degree, often followed by a PhD.','Maths, Further Maths, Physics, Computing'],
+'Chief Data Officer':['Many years leading data teams in a business.','Maths, Business, English'],
+'SOC Analyst Apprentice':['A paid cyber security apprenticeship (Level 4) after A-levels or college.','Computing, Maths'],
+'Junior Pen Tester':['A cyber degree or apprenticeship, plus industry certificates and lots of practice in safe hacking labs.','Computing, Maths'],
+'Security Analyst':['A cyber degree or apprenticeship, or moving across from IT support.','Computing, Maths, English'],
+'Penetration Tester':['Experience as a junior tester plus professional certifications.','Computing'],
+'Security Architect':['Many years working in security or software engineering.','Computing, Maths'],
+'CISO':['A long career in cyber security, plus experience leading teams.','Computing, Business, English'],
+'Graduate Analyst':['A bank graduate scheme after a degree. Finance, economics and maths are common, but any subject can get in.','Maths, Economics'],
+'Banking Apprentice':['A paid financial services apprenticeship after GCSEs or A-levels.','Maths, English, Business'],
+'Junior Trader':['Usually a degree (often maths or economics) and then a bank\'s graduate scheme.','Maths, Economics'],
+'Risk Analyst':['A degree in maths, finance or economics, plus professional exams while working.','Maths, Economics'],
+'Quant Developer':['A maths, physics or computer science degree, often with a master\'s or PhD.','Maths, Further Maths, Physics, Computing'],
+'Head of Trading':['Years of successful trading, then managing a desk of traders.','Maths, Economics'],
+'Junior Product Analyst':['A degree or apprenticeship in business or data.','Maths, Business, Computing'],
+'UX Designer':['A design or psychology degree, an apprenticeship, or a bootcamp plus a portfolio.','Art & Design, Psychology, Computing'],
+'Business Analyst':['A degree, or a business analyst apprenticeship (Level 4).','Business, English, Maths'],
+'Product Manager':['Often moves across from being a developer, analyst or designer.','Business, Computing, English'],
+'Delivery Lead':['Experience running projects, plus agile or Scrum training.','Business, English'],
+'Chief Product Officer':['A long career as a product manager, then leading the product team.','Business, English, Computing']
+};
+const careerOf=c=>CAREER[c.title]||['',''];
+const skillMix=c=>{const t={};c.reqs.forEach(r=>t[r.s]=(t[r.s]||0)+r.n);return Object.entries(t).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`${SYM[s].e}×${n}`).join('  ');};
+const ALLJOBS=makeCards();
+function nextSteps(c){return ALLJOBS.filter(x=>x.f===c.f&&lvl(x)===lvl(c)+1);}
+
+// ================= CAREER CHECK =================
+function careerQuestion(c){
+ const qs=[];
+ const others=shuffle(ALLJOBS.filter(x=>x.title!==c.title));
+ // 1: which job is this description?
+ const tgt=others[0],wrong=shuffle(others.slice(1).filter(x=>x.f!==tgt.f||lvl(x)!==lvl(tgt))).slice(0,2);
+ qs.push({q:`Which job is this?<br><i>"${tgt.desc}"</i>`,opts:shuffle([tgt.title,...wrong.map(x=>x.title)]),a:tgt.title,why:`That's a <b>${tgt.title}</b> (${FAC[tgt.f].n}).`});
+ // 2: next step
+ const nx=nextSteps(c);
+ if(nx.length){const right=shuffle(nx)[0];const bad=shuffle(ALLJOBS.filter(x=>x.f!==c.f&&lvl(x)<=lvl(c)&&x.title!==c.title)).slice(0,2);
+  qs.push({q:`What's a common <b>next step</b> after <b>${c.title}</b>?`,opts:shuffle([right.title,...bad.map(x=>x.title)]),a:right.title,why:`Careers usually grow inside the same field: <b>${c.title}</b> → <b>${right.title}</b>.`});}
+ // 3: apprenticeship route
+ if(/Apprentice/.test(c.title))qs.push({q:`How does a <b>${c.title}</b> usually train?`,opts:shuffle(['Working and getting paid while studying','Only through a full-time university degree','No training: they start as a manager']),a:'Working and getting paid while studying',why:'Apprentices earn a wage and get a qualification at the same time, with no university fees.'});
+ // 4: main skill
+ const t={};c.reqs.forEach(r=>{if(r.s!=='wild')t[r.s]=(t[r.s]||0)+r.n;});const top=Object.entries(t).sort((a,b)=>b[1]-a[1]);
+ if(top.length>1&&top[0][1]>top[1][1]){const sk=top[0][0];qs.push({q:`Which skill does ${an(c.title)} <b>${c.title}</b> use most?`,opts:shuffle(['code','data','money','people']).map(s=>`${SYM[s].e} ${SYM[s].n}`),a:`${SYM[sk].e} ${SYM[sk].n}`,why:`${c.desc} That's mostly <b>${SYM[sk].n}</b>.`});}
+ if(qs.length===1||Math.random()<.3)return qs[0];
+ return shuffle(qs.slice(1))[0];
+}
+function careerCard(c,isPromo){
+ return new Promise(res=>{
+  const [route,subj]=careerOf(c),nx=nextSteps(c),q=careerQuestion(c);
+  const reward=G.mode==='ladder'?'+1 bonus die next turn':'+2 🏆';
+  modal(`<div style="color:${FAC[c.f].c};font-weight:800;font-size:.72rem">${FAC[c.f].i} ${FAC[c.f].n.toUpperCase()} · ${LV[lvl(c)].toUpperCase()} LEVEL</div>
+  <h2>${isPromo?'📈 You\'re now a':'🎉 You hired a'} ${c.title}</h2>
+  <div class="cc"><div><b>💼 The job</b>${c.desc}</div><div><b>🧩 Skills</b>${skillMix(c)}</div><div><b>🎓 How people get in</b>${route}</div><div><b>📚 Useful subjects</b>${subj}</div>${nx.length?`<div><b>↗ Next steps</b>${nx.map(x=>x.title).join(' or ')}</div>`:'<div><b>🏔️ Top of the ladder</b>This is a leadership role.</div>'}</div>
+  <div class="quiz"><div class="qh">🧠 Career check <span>${reward} if right</span></div><p>${q.q}</p><div class="qo">${q.opts.map((o,i)=>`<button class="qb" data-o="${encodeURIComponent(o)}">${o}</button>`).join('')}</div><div id="qfb"></div></div>`);
+  document.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{
+   const pick=decodeURIComponent(b.dataset.o),ok=pick===q.a;G.stats.cq++;if(ok)G.stats.cc++;
+   document.querySelectorAll('.qb').forEach(x=>{x.disabled=true;const v=decodeURIComponent(x.dataset.o);if(v===q.a)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
+   if(ok){sfx('ding');if(G.mode==='ladder')G.players[0].bonus=1;else G.players[0].rep+=2;}else sfx('no');
+   document.getElementById('qfb').innerHTML=`<p class="${ok?'good':'bad'}">${ok?`✅ Correct! ${reward}`:'❌ Not quite.'} ${q.why}</p><button class="go" id="qgo">Continue</button>`;
+   document.getElementById('qgo').onclick=()=>{closeModal();render();res();};
+  });
+ });
+}
+
+// ================= MATHS MODE =================
+const MLEV={f:{n:'Foundation',y:'Years 4–6',d:'How many faces fit? Fractions out of 6.'},c:{n:'Core',y:'Years 7–9',d:'Work out the chance of a bust with powers.'},h:{n:'Higher',y:'Years 10–13',d:'Expected value: is rolling worth the risk?'}};
+function riskInfo(){
+ const T=G.T,p=P();const n=nextDice();const faces=new Set();
+ const add=r=>{if(r.s==='wild')faces.add('wild');else{faces.add(r.s);faces.add('wild');if(has(p,'EXTRA2',r.s))faces.add('extra');}};
+ if(T.commit!==null)add(focusReq());else T.card.reqs.filter(isOpen).forEach(add);
+ const k=faces.size,pm=(6-k)/6,pb=Math.pow(pm,n);
+ const S=stakeNow();
+ let Gv;if(T.commit!==null){const r=focusReq();Gv=G.mode==='ladder'?1:rv(r);}else{const o=T.card.reqs.filter(isOpen);Gv=o.length?Math.round(o.reduce((s,r)=>s+rv(r),0)/o.length*10)/10:0;}
+ return{n,k,faces:[...faces],pm,pb,S,G:Gv,ev:(1-pb)*(S+Gv)};
+}
+const fx=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const p1=x=>(Math.round(x*1000)/10).toFixed(1).replace(/\.0$/,'')+'%';
+function uniqOpts(correct,cands,fmt){const seen=new Set([fmt(correct)]);const out=[correct];for(const c of cands){const f=fmt(c);if(!seen.has(f)&&isFinite(c)&&c>=0){seen.add(f);out.push(c);}if(out.length===3)break;}return shuffle(out);}
+function mathsQuestion(R){
+ const L=G.mathLevel,fi=R.faces.map(f=>SYM[f].e).join(' ');
+ const box=G.T.commit!==null?`your ${SYM[focusReq().s].e} box`:`a box on ${G.T.card.title}`;
+ const need=G.T.commit!==null?[focusReq()]:G.T.card.reqs.filter(isOpen);
+ const needTxt=`Your next die must go in ${G.T.commit!==null?'your focus box':'one of the open boxes'}: <b>${[...new Set(need.map(r=>SYM[r.s].e+' '+SYM[r.s].n))].join(', ')}</b>. Remember ⭐ Talent fits any skill box${has(P(),'EXTRA2')?' and your perk lets 🔗 count too':''}.`;
+ if(L==='f'){
+  const opts=shuffle([...new Set([R.k,Math.max(1,R.k-1),R.k+1,6-R.k].filter(x=>x>=1&&x<=5))]).slice(0,3);if(!opts.includes(R.k))opts[0]=R.k;
+  return{q:`${needTxt}<br>On <b>one</b> die, how many of the 6 faces would fit?`,opts:shuffle(opts).map(String),a:String(R.k),
+   work:`The faces that fit are ${fi}. That's <b>${R.k} out of 6</b>, so each die has a ${fx(R.k,6)} chance to fit and a ${fx(6-R.k,6)} chance to miss.<br>You'll roll <b>${R.n}</b> ${R.n>1?'dice':'die'}. You only bust if <b>every</b> die misses, which happens about <b>${pct(R.pb)}%</b> of the time.`};
+ }
+ if(L==='c'){
+  const cand=[R.pm,1-R.pb,Math.pow(R.k/6,R.n),Math.min(.99,R.pm/R.n),Math.pow(R.pm,R.n+1)];
+  const o=uniqOpts(R.pb,cand,p1);
+  return{q:`${fi} fit ${box}, so each die misses with chance ${fx(6-R.k,6)}. You'll roll <b>${R.n}</b> ${R.n>1?'dice':'die'}. What's the chance they <b>all</b> miss (a bust)?`,opts:o.map(p1),a:p1(R.pb),
+   work:`Every die has to miss, so multiply: ${Array(R.n).fill(fx(6-R.k,6)).join(' × ')} = (${fx(6-R.k,6)})<sup>${R.n}</sup> = <b>${p1(R.pb)}</b>.<br>Common mistake: ${fx(6-R.k,6)} = ${p1(R.pm)} is the chance for just <b>one</b> die.`};
+ }
+ const r1=x=>(Math.round(x*10)/10).toString();
+ const cand=[R.S+R.G,(1-R.pb)*R.G,R.pb*(R.S+R.G),R.S+(1-R.pb)*R.G];
+ const o=uniqOpts(R.ev,cand,r1);
+ const better=R.ev>R.S+0.05?'Rolling is worth more <b>on average</b>.':R.ev<R.S-0.05?'Stopping is worth more <b>on average</b>.':'It\'s about even.';
+ return{q:`Bust chance: <b>${p1(R.pb)}</b>. You have <b>${R.S}</b> 🏆 at stake. If you survive, assume you gain about <b>${R.G}</b> 🏆 more. What's the <b>expected value</b> of rolling again?`,opts:o.map(r1),a:r1(R.ev),
+  work:`E = P(survive) × (stake + gain) = (1 − ${p1(R.pb)}) × (${R.S} + ${R.G}) = <b>${r1(R.ev)}</b> 🏆.<br>Stopping is a certain <b>${R.S}</b> 🏆. ${better}<br><span class="mute">Risk analysts and traders use exactly this kind of calculation every day.</span>`};
+}
+function mathsPrompt(){
+ const T=G.T,R=riskInfo(),q=mathsQuestion(R);T.mq=(T.mq||0)+1;
+ modal(`<div class="qh" style="margin-bottom:6px">📐 ${MLEV[G.mathLevel].n} maths · ${MLEV[G.mathLevel].y} <span>+1 🏆 if right</span></div>
+ <h2>Before you roll…</h2><p>${q.q}</p><div class="qo">${q.opts.map(o=>`<button class="qb" data-o="${o}">${o}</button>`).join('')}</div><div id="qfb"></div>`);
+ document.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{
+  const ok=b.dataset.o===q.a;G.stats.mq++;if(ok){G.stats.mc++;G.players[0].rep+=1;sfx('ding');}else sfx('no');
+  document.querySelectorAll('.qb').forEach(x=>{x.disabled=true;if(x.dataset.o===q.a)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
+  T.answered=true;
+  document.getElementById('qfb').innerHTML=`<p class="${ok?'good':'bad'}">${ok?'✅ Correct! +1 🏆':'❌ Not quite. Here\'s the working:'}</p><div class="work">${q.work}</div>
+  <p style="text-align:center;font-weight:800;margin-top:10px">Now you decide:</p><div class="btns"><button class="big roll" id="mr">🎲 Roll<small>${pct(R.pb)}% bust</small></button><button class="big stop" id="ms">✋ Stop<small>keep ${R.S} 🏆</small></button></div>`;
+  document.getElementById('mr').onclick=()=>{closeModal();doRoll();};
+  document.getElementById('ms').onclick=()=>{closeModal();stopTurn();};
+  render();
+ });
+}
+
+// ================= INTERVIEWS =================
+const an=t=>/^[AEIOU]/i.test(t)?'an':'a';
+const AI_PASS=0.65; // the rival passes about 2 in 3 interviews
+const FILLER_SUBJ=['Drama, PE','Music, History','Geography, French'];
+function interviewQuestion(c){
+ const [route,subj]=careerOf(c),others=ALLJOBS.filter(x=>x.title!==c.title),qs=[];
+ const two=a=>shuffle([...new Set(a)]).slice(0,2);
+ qs.push({k:'💼 The job',q:`What does ${an(c.title)} <b>${c.title}</b> do?`,a:c.desc,d:two(others.filter(x=>x.f!==c.f).map(x=>x.desc))});
+ const rd=two(others.filter(x=>x.f!==c.f&&lvl(x)!==lvl(c)).map(x=>careerOf(x)[0]).filter(x=>x&&x!==route));
+ if(rd.length===2)qs.push({k:'🎓 How to get in',q:`How do people usually get into a job as ${an(c.title)} <b>${c.title}</b>?`,a:route,d:rd});
+ const set=new Set(subj.split(', '));
+ const norm=x=>x.split(', ').sort().join('|');const seen=new Set([norm(subj)]);
+ let sd=shuffle(ALLJOBS.map(x=>careerOf(x)[1]).filter(x=>x.split(', ').every(y=>!set.has(y)))).filter(x=>{const n=norm(x);if(seen.has(n))return false;seen.add(n);return true;}).slice(0,2);
+ while(sd.length<2)sd.push(FILLER_SUBJ[sd.length]);
+ qs.push({k:'📚 Subjects',q:`Which school subjects are most useful for ${an(c.title)} <b>${c.title}</b>?`,a:subj,d:sd});
+ const nx=nextSteps(c);
+ if(nx.length)qs.push({k:'↗ Next step',q:`What's a common next step <b>up</b> from <b>${c.title}</b>?`,a:shuffle(nx)[0].title,d:two(others.filter(x=>x.f!==c.f&&(lvl(c)>1?lvl(x)<lvl(c):lvl(x)===1)).map(x=>x.title))});
+ const t={};c.reqs.forEach(r=>{if(r.s!=='wild')t[r.s]=(t[r.s]||0)+r.n;});const top=Object.entries(t).sort((a,b)=>b[1]-a[1]);
+ if(top.length>1&&top[0][1]>top[1][1]){const sk=top[0][0];qs.push({k:'🧩 Skills',q:`Which skill does ${an(c.title)} <b>${c.title}</b> use most?`,a:`${SYM[sk].e} ${SYM[sk].n}`,d:shuffle(['code','data','money','people'].filter(s=>s!==sk)).slice(0,2).map(s=>`${SYM[s].e} ${SYM[s].n}`)});}
+ const q=shuffle(qs)[0];q.opts=shuffle([q.a,...q.d]);return q;
+}
+function interview(card){
+ const p=P(),q=interviewQuestion(card);G.stats.iq[G.cur]++;
+ if(p.ai){
+  return new Promise(async res=>{
+   toast('🎤 Rival\'s interview…',card.title);await sleep(1700);
+   const ok=Math.random()<AI_PASS;if(ok)G.stats.ic[1]++;
+   tick(`🎤 ${nm(1)} was asked about <i>${q.k.slice(2).toLowerCase()}</i> for <b>${card.title}</b> and ${ok?'passed ✅':'got it wrong ❌'}.`);
+   if(!ok){toast('❌ Rival turned down!',`${card.title} is still up for grabs`);sfx('no');await sleep(1800);}
+   res(ok);
+  });
+ }
+ return new Promise(res=>{
+  modal(`<div class="qh" style="margin-bottom:6px">🎤 JOB INTERVIEW <span>${q.k}</span></div>
+  <h2>${card.title}</h2><p class="mute">You've filled every box. Now pass the interview to get the job!</p>
+  <p style="font-size:1rem;margin-top:10px">${q.q}</p><div class="qo">${q.opts.map(o=>`<button class="qb" data-o="${encodeURIComponent(o)}">${o}</button>`).join('')}</div><div id="qfb"></div>`);
+  document.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{
+   const ok=decodeURIComponent(b.dataset.o)===q.a;if(ok)G.stats.ic[0]++;
+   document.querySelectorAll('.qb').forEach(x=>{x.disabled=true;const v=decodeURIComponent(x.dataset.o);if(v===q.a)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
+   sfx(ok?'ding':'no');
+   document.getElementById('qfb').innerHTML=`<p class="${ok?'good':'bad'}">${ok?`✅ Great answer! You're ${G.mode==='ladder'?'promoted':'hired'}.`:`❌ Not this time. The last box opens up again, so the rival could grab this job. Flip the card (🔄) to revise before you try again!`}</p><button class="go" id="qgo">${ok?'Celebrate 🎉':'OK'}</button>`;
+   document.getElementById('qgo').onclick=()=>{closeModal();res(ok);};
+  });
+ });
+}
+async function failInterview(){
+ const T=G.T;T.done=true;busy=true;
+ tick(`🎤 ${nm(G.cur)} didn't pass the interview for <b>${T.card.title}</b>. The last box is open again.`);
+ if(!P().ai){toast('❌ Not hired this time','Flip the card to revise');sfx('no');}
+ render();await sleep(P().ai?600:1700);if(G.T!==T)return;busy=false;endTurn();
+}
+function flipCard(id,ev){
+ ev&&ev.stopPropagation();
+ G.flipped=G.flipped||new Set();
+ if(G.flipped.has(id))G.flipped.delete(id);else G.flipped.add(id);
+ document.querySelectorAll(`[data-jid="${id}"] .c3`).forEach(el=>el.classList.toggle('on',G.flipped.has(id)));
+ sfx('tap');
+}
+
+// ================= MODES =================
+const MODES={
+ quick:{e:'⚡',n:'Quick Hire',tag:'Start here',d:'The full game with a coach: glowing hints and a bust-risk meter.'},
+ tactics:{e:'🧠',n:'Tactics',tag:'No hints',d:'Same game, no glowing hints and no meter. Trust your own maths!'},
+ ladder:{e:'🪜',n:'Career Ladder',tag:'Race',d:'Race the rival up the career ladder. Choose promotions or career switches.'},
+ maths:{e:'📐',n:'Maths Mode',tag:'Years 4–13',d:'Work out the odds before every risky roll. Three levels.'}
+};
+const RULES_CORE=[
+ ['🎲','<b>Roll</b> the dice.'],
+ ['🎯','<b>Pick one skill box</b> on a job. That box is your <b>focus</b>. You can\'t swap it until it\'s full.'],
+ ['👆','<b>Tap dice</b> to put them in your box. You must add <b>at least one</b> die after every roll.'],
+ ['🤔','<b>Roll again or stop?</b> Box full? Stop to keep it, or roll on and start another box on the <b>same job</b>.'],
+ ['💥','<b>BUST:</b> if a roll has no dice that fit, you lose everything from this turn.'],
+ ['🎤','<b>Interview!</b> Fill the <b>last box</b> on a job and you get a job interview question. Pass to get the job. Fail and the box opens up again. The rival has interviews too, and doesn\'t always pass.'],
+ ['🔄','<b>Tap 🔄 on any card</b> to flip it and read the job details. The interview questions come from there!']
+];
+function rulesFor(k){
+ if(k==='maths')return[...RULES_CORE,['📐','<b>Before every risky roll</b> you answer a quick maths question about the odds. Get it right for <b>+1 🏆</b>, then see the working and decide: roll or stop?'],['🏆','Pass the interview to hire them. Most points wins.']];
+ if(k==='ladder')return[['🎯','<b>Choose a job</b>: a promotion in your field, or a career switch. Your first choice is an apprenticeship or graduate route.'],...RULES_CORE.slice(0,4),RULES_CORE[4],['📈','Fill <b>every</b> box and pass the interview to get <b>promoted</b> and win its perk. Full boxes stay full between turns.'],['🏁','Entry → Junior → Senior → Leadership. First to land a <b>Leadership</b> job wins!']];
+ return[...RULES_CORE,['🏆','When every box on a job is full, <b>everyone</b> who filled a box scores its points. Whoever fills the <b>last box and passes the interview</b> hires the person and gets their perk.'],['🏁','The game ends when someone has hired from <b>all 5 sectors</b>, or <b>3</b> from one sector. Most points wins.']];
+}
+function legendHtml(){return `<div class="legend">${FACES.map(f=>`<span>${SYM[f].e} ${SYM[f].n}${f==='wild'?': fits any box':f==='extra'?': +1 die next roll':''}</span>`).join('')}</div>`;}
+function showModes(){
+ modal(`<h2>Hired<span style="color:var(--gold)">!</span></h2><p>Build a career in tech and finance, one roll at a time. How do you want to play?</p>
+ <div class="modes">${Object.entries(MODES).map(([k,m])=>`<button class="mt" onclick="showRules('${k}')"><span class="e">${m.e}</span><span><b>${m.n}<span class="tag">${m.tag}</span></b><small>${m.d}</small></span></button>`).join('')}</div>`);
+}
+function showRules(k,inGame){
+ const m=MODES[k];
+ modal(`<h2>${m.e} ${m.n}: how to play</h2><ul class="steps">${rulesFor(k).map(([e,t])=>`<li><span class="e">${e}</span><span>${t}</span></li>`).join('')}</ul>${legendHtml()}
+ <p class="tip">💡 <b>The big trick:</b> every die you put in a box is one fewer to roll next time. Fewer dice = more chance of a bust.${k==='quick'||k==='ladder'?' Watch the meter change as you tap!':''}</p><p class="tip" style="background:#2dd4bf14;border-color:#2dd4bf44">🎤 <b>Revise to win:</b> the back of every card shows the real job: what they do, how people get in, useful subjects and next steps. Interviews ask about these.</p>
+ ${inGame?`<button class="go" onclick="closeModal()">Back to game</button>`:k==='maths'?`<p style="font-weight:800;margin-top:12px">Choose your level:</p>${Object.entries(MLEV).map(([l,v])=>`<button class="mt" style="width:100%;margin-top:8px" onclick="startGame('maths','${l}')"><span class="e">${l==='f'?'🟢':l==='c'?'🟡':'🔴'}</span><span><b>${v.n}<span class="tag">${v.y}</span></b><small>${v.d}</small></span></button>`).join('')}<button class="ghost" style="width:100%;margin-top:8px" onclick="showModes()">← Other modes</button>`:`<button class="go" onclick="startGame('${k}')">Play ${m.n}</button><button class="ghost" style="width:100%;margin-top:8px" onclick="showModes()">← Other modes</button>`}`);
+}
+
+// ================= SETUP =================
+function startGame(mode,ml){
+ closeModal();busy=false;
+ const all=makeCards();
+ G={mode,players:[{name:'You',ai:false,rep:0,team:{},perks:[],rung:0,job:null,offers:null,bonus:0,history:[]},{name:'Rival',ai:true,rep:0,team:{},perks:[],rung:0,job:null,offers:null,bonus:0,history:[]}],cur:0,tick:[],over:false,T:null,mathLevel:ml||'c',stats:{mq:0,mc:0,iq:[0,0],ic:[0,0]},flipped:new Set()};
+ if(mode==='ladder'){G.pool=all;}
+ else{
+  const st=shuffle(all.filter(c=>c.starter));
+  G.players.forEach((p,i)=>{p.team[st[i].f]=[st[i]];});
+  const deck=shuffle([...all.filter(c=>!c.starter),...st.slice(2)]),mk=[];
+  for(let i=0;i<deck.length&&mk.length<4;){if(!mk.some(m=>m.f===deck[i].f))mk.push(deck.splice(i,1)[0]);else i++;}
+  G.deck=deck;G.market=mk;
+  tick(`Your first team member: <b>${st[0].title}</b> (⚡ ${st[0].ab.name}).`);
+ }
+ startTurn();
+}
+function ladderOffers(p){
+ const lv=p.rung+1,pool=G.pool.filter(c=>lvl(c)===lv),cp=(c,tag)=>Object.assign(JSON.parse(JSON.stringify(c)),{tag});
+ const last=p.history[p.history.length-1];
+ if(!last){const ap=shuffle(pool.filter(c=>/Apprentice/.test(c.title))),gr=shuffle(pool.filter(c=>!/Apprentice/.test(c.title)));let g=gr.find(c=>c.f!==ap[0].f)||gr[0];return shuffle([cp(ap[0],'🛠️ Apprenticeship route'),cp(g,'🎓 Degree / graduate route')]);}
+ const same=shuffle(pool.filter(c=>c.f===last.f)),other=shuffle(pool.filter(c=>c.f!==last.f));
+ const out=[];if(same[0])out.push(cp(same[0],'↗ Promotion in '+FAC[last.f].n));out.push(cp(other[0],'🔀 Career switch'));if(out.length<2)out.push(cp(other[1],'🔀 Career switch'));return out;
+}
+function activeAbs(p){return G.mode==='ladder'?p.perks:Object.values(p.team).map(s=>s[s.length-1].ab);}
+function has(p,t,s){return activeAbs(p).some(a=>a.t===t&&(s==null||a.s===s));}
+function abOf(p,t){return activeAbs(p).find(a=>a.t===t);}
+
+function startTurn(){
+ const p=P();
+ G.T={rolling:[],locked:[],rollNo:0,card:null,commit:null,prog:{},lockedThisRoll:0,completed:[],done:false,rerolled:false,counts:{},threeUsed:false,mustRoll:false,aiMsg:''};
+ if(G.mode==='ladder'){
+  if(!p.job){p.offers=ladderOffers(p);if(p.ai){p.job=aiPickOffer(p.offers);p.offers=null;tick(`${nm(1)} is going for <b>${p.job.title}</b>.`);}}
+  G.T.card=p.job;
+ }
+ render();
+ if(p.ai)aiTurn();
+}
+const supply=()=>12-G.T.rolling.length-G.T.locked.length;
+function countFaces(){const c={};FACES.forEach(f=>c[f]=0);G.T.rolling.forEach(d=>c[d.face]++);G.T.counts=c;}
+function dieVal(face,req,p=P()){
+ const T=G.T,single=['code','data','money','people'].includes(face)&&T.counts[face]===1&&has(p,'SINGLE',face);
+ if(req.s==='wild')return(face==='wild'||single)?1:0;
+ if(face===req.s||face==='wild'||single)return 1;
+ if(face==='extra'&&has(p,'EXTRA2',req.s))return 2;
+ return 0;
+}
+const isOpen=r=>r.owner===null;
+const plainFit=(face,req)=>req.s==='wild'?face==='wild':(face===req.s||face==='wild');
+function perkFor(face,req,p=P()){if(!dieVal(face,req,p)||plainFit(face,req))return null;return face==='extra'?abOf(p,'EXTRA2'):activeAbs(p).find(a=>a.t==='SINGLE'&&a.s===face);}
+const focusReq=()=>{const T=G.T;return T.commit!==null?T.card.reqs[T.commit]:null;};
+
+// ================= RULES ENGINE (focus rule) =================
+function allowedCards(){
+ const T=G.T;
+ if(G.mode==='ladder')return T.card?[T.card]:[];
+ return T.card&&(T.completed.length||T.locked.length)?[T.card]:G.market;
+}
+function threeReady(){const T=G.T;return T.commit!==null&&(T.prog[T.commit]||0)>=1&&!T.threeUsed&&activeAbs(P()).some(a=>a.t==='THREE'&&T.counts[a.s]>=3);}
+function anyMove(){
+ const T=G.T;
+ if(T.commit!==null){const r=focusReq();return T.rolling.some(d=>dieVal(d.face,r)>0)||threeReady();}
+ return allowedCards().some(c=>c.reqs.some(r=>isOpen(r)&&T.rolling.some(d=>dieVal(d.face,r)>0)));
+}
+function canCommit(card,i){
+ const T=G.T,r=card.reqs[i];
+ if(!T.rollNo||T.mustRoll||T.done)return false;
+ if(T.commit!==null&&(T.lockedThisRoll>0||(T.prog[T.commit]||0)>0))return false;
+ if(!allowedCards().includes(card)||!isOpen(r))return false;
+ if(T.card===card&&T.commit===i)return false;
+ return T.rolling.some(d=>dieVal(d.face,r)>0);
+}
+function commit(card,i){const T=G.T;T.card=card;T.commit=i;T.prog[i]=0;sfx('tap');render();}
+async function lockDie(d){
+ const T=G.T,r=focusReq();if(!r)return;const v=dieVal(d.face,r);if(!v)return;
+ const pk=perkFor(d.face,r);if(pk)mini(`⚡ ${pk.name}: ${d.face==='extra'?`your 🔗 counts as ${SYM[r.s].e}${SYM[r.s].e}`:`your lone ${SYM[d.face].e} counts as ⭐`}`);
+ T.rolling=T.rolling.filter(x=>x!==d);d.fresh=false;T.locked.push(d);
+ T.prog[T.commit]=Math.min(r.n,(T.prog[T.commit]||0)+v);T.lockedThisRoll++;sfx('tap');
+ if(threeReady()&&T.prog[T.commit]<r.n){T.threeUsed=true;T.prog[T.commit]=r.n;mini(`⚡ ${abOf(P(),'THREE').name}! Box filled instantly`);}
+ render();
+ if(T.prog[T.commit]>=r.n)await boxFilled();
+}
+async function boxFilled(){
+ const T=G.T,r=focusReq();r.owner=G.cur;T.completed.push(T.commit);T.commit=null;T.mustRoll=true;sfx('ding');
+ if(!P().ai&&T.card.reqs.some(isOpen))mini('✅ Box filled!');
+ render();
+ if(T.card.reqs.every(x=>!isOpen(x))){
+  busy=true;T.iv=true;render();
+  const ok=await interview(T.card);busy=false;T.iv=false;if(G.T!==T)return;
+  if(ok)await finishCard();else{r.owner=null;T.completed.pop();await failInterview();}
+ }
+}
+async function doRoll(){
+ const T=G.T,p=P();if(T.done)return;
+ if(T.rollNo===0){const n=Math.min(12,5+(has(p,'START6')?1:0)+p.bonus);if(!p.ai){const msg=[];if(has(p,'START6'))msg.push(`⚡ ${abOf(p,'START6').name}: +1 die`);if(p.bonus)msg.push('⚡ Bonus die from last turn');if(msg.length)setTimeout(()=>mini(msg.join(' · ')),700*SPEED);}p.bonus=0;for(let i=0;i<n;i++)T.rolling.push({id:++dieSeq});}
+ else{const ex=T.rolling.filter(d=>d.face==='extra').length,add=Math.min(ex,supply());for(let i=0;i<add;i++)T.rolling.push({id:++dieSeq});if(add)mini(`🔗 Network: +${add} ${add>1?'dice':'die'}!`);}
+ T.rolling.forEach(d=>{d.face=FACES[Math.random()*6|0];d.fresh=true;});
+ T.rollNo++;T.answered=false;T.lockedThisRoll=0;T.threeUsed=false;T.mustRoll=false;countFaces();
+ sfx('roll');busy=true;render();await sleep(650);busy=false;
+ if(G.T!==T)return;
+ await afterRoll();
+}
+async function afterRoll(){
+ const T=G.T;
+ if(!anyMove())return rerollOrBust();
+ if(threeReady()){T.threeUsed=true;T.lockedThisRoll++;T.prog[T.commit]=focusReq().n;mini(`⚡ ${abOf(P(),'THREE').name}! Box filled instantly`);await boxFilled();return;}
+ render();
+}
+async function rerollOrBust(){
+ const T=G.T,p=P();
+ if(T.rollNo===1&&!T.rerolled&&has(p,'REROLL')){
+  T.rerolled=true;mini(`⚡ ${abOf(p,'REROLL').name}: free re-roll!`);
+  if(T.commit!==null&&!T.locked.length){T.commit=null;if(G.mode!=='ladder')T.card=null;}
+  T.rolling.forEach(d=>{d.face=FACES[Math.random()*6|0];d.fresh=true;});countFaces();sfx('roll');busy=true;render();await sleep(800);if(G.T!==T)return;busy=false;
+  return afterRoll();
+ }
+ return bust();
+}
+async function stopTurn(){
+ const T=G.T;if(T.done||!T.rollNo)return;T.done=true;
+ const n=T.completed.length;
+ tick(`${nm(G.cur)} ${n?`stopped and kept ${n} box${n>1?'es':''} on <b>${T.card.title}</b>`:'stopped with nothing kept'}.`);
+ if(n&&!P().ai)mini('✋ Kept!');
+ render();await sleep(700);if(G.T!==T)return;endTurn();
+}
+async function bust(){
+ const T=G.T,p=P();if(T.done)return;T.done=true;busy=true;
+ let kept=null;
+ if(T.card)T.completed.forEach((i,k)=>{if(k===0&&has(p,'SAFE')){kept=i;return;}T.card.reqs[i].owner=null;});
+ const lost=T.completed.length-(kept!==null?1:0);
+ let sub=lost?`Lost ${lost} filled box${lost>1?'es':''}`:'No dice fitted';
+ if(kept!==null)sub+=` · ⚡ ${abOf(p,'SAFE').name} saved one`;
+ if(has(p,'BUST2')){p.bonus=1;sub+=` · ⚡ +1 die next turn`;}
+ tick(`💥 ${nm(G.cur)} went bust${lost?` and lost ${lost} box${lost>1?'es':''}`:''}.`);
+ sfx('bust');toast(p.ai?'💥 Rival BUST!':'💥 BUST!',sub);render();await sleep(1900);if(G.T!==T)return;busy=false;endTurn();
+}
+async function finishCard(){
+ const T=G.T,p=P(),card=T.card;T.done=true;busy=true;
+ if(G.mode==='ladder'){
+  p.rung++;p.perks.push(card.ab);p.history.push(card);p.job=null;
+  tick(`📈 ${nm(G.cur)} ${p.ai?'was':'were'} promoted to <b>${card.title}</b>!`);
+  sfx('hire');if(!p.ai)confetti();
+  toast(p.ai?'🤖 Rival promoted':'📈 PROMOTED!',`${card.title} · ⚡ ${card.ab.name}`);
+  render();await sleep(2000);if(G.T!==T)return;
+  if(p.rung>=4)return endGame(G.cur,`${p.ai?'The rival':'You'} reached Leadership first!`);
+  busy=false;return endTurn();
+ }
+ const gains=[0,0];card.reqs.forEach(r=>{gains[r.owner]+=rv(r);});
+ G.players.forEach((q,i)=>q.rep+=gains[i]);
+ const idx=G.market.indexOf(card);(p.team[card.f]=p.team[card.f]||[]).push(card);
+ tick(`🤝 ${nm(G.cur)} hired <b>${card.title}</b>. Points: You +${gains[0]}, Rival +${gains[1]}.`);
+ sfx('hire');if(!p.ai)confetti();
+ toast(p.ai?'🤖 Rival hired':'🎉 HIRED!',`${card.title} · You +${gains[0]} 🏆 · Rival +${gains[1]} 🏆`);
+ let out=false;if(G.deck.length){G.market[idx]=G.deck.shift();if(!G.deck.length)out=true;}else{G.market.splice(idx,1);out=true;}
+ render();await sleep(2100);if(G.T!==T)return;
+ const secs=Object.keys(p.team).length,three=Object.values(p.team).some(s=>s.length>=3);
+ if(secs>=5||three||out){const a=G.players[0].rep,b=G.players[1].rep;return endGame(a>b?0:b>a?1:-1,secs>=5?`${p.ai?'The rival':'You'} hired from all 5 sectors.`:three?`${p.ai?'The rival':'You'} hired 3 people in one sector.`:'The job board ran out of people.');}
+ busy=false;endTurn();
+}
+function endTurn(){if(G.over)return;G.cur=1-G.cur;startTurn();}
+function endGame(w,reason){
+ G.over=true;busy=false;render();
+ const [a,b]=G.players;
+ const team=p=>(G.mode==='ladder'?p.history:Object.values(p.team).flat()).map(c=>`<span class="chip" style="background:${FAC[c.f].c}">${c.title}</span>`).join('')||'<span class="empty">nobody yet</span>';
+ if(w===0)confetti();
+ modal(`<h2>${w===0?'🏆 You win!':w===1?'🤖 The rival wins':'🤝 It\'s a draw!'}</h2><p>${reason}</p>
+ ${G.mode!=='ladder'?`<table class="sc"><tr><th></th><th>You</th><th>Rival</th></tr><tr><td>Points 🏆</td><td><b>${a.rep}</b></td><td><b>${b.rep}</b></td></tr><tr><td>People hired</td><td>${Object.values(a.team).flat().length}</td><td>${Object.values(b.team).flat().length}</td></tr></table>`:''}
+ <p><b>${G.mode==='ladder'?'Your career':'Your team'}</b><br>${team(a)}</p><p><b>${G.mode==='ladder'?'Rival\'s career':'Rival\'s team'}</b><br>${team(b)}</p>
+ <div class="learn"><b>📚 What you practised</b>${G.stats.iq[0]?`<div>🎤 Your interviews: <b>${G.stats.ic[0]}/${G.stats.iq[0]}</b> passed</div>`:''}${G.stats.iq[1]?`<div>🤖 Rival's interviews: <b>${G.stats.ic[1]}/${G.stats.iq[1]}</b> passed</div>`:''}${G.stats.mq?`<div>📐 ${MLEV[G.mathLevel].n} maths: <b>${G.stats.mc}/${G.stats.mq}</b> right</div>`:''}<div>🎓 Jobs met: ${[...new Set((G.mode==='ladder'?a.history:Object.values(a.team).flat()).map(c=>c.title))].join(', ')||'none yet'}</div></div>
+ <button class="go" onclick="startGame('${G.mode}','${G.mathLevel}')">Play again</button><button class="ghost" style="width:100%;margin-top:8px" onclick="showModes()">Change mode</button>`);
+}
+
+// ================= ODDS =================
+// chance that the NEXT roll busts, given the dice still unlocked
+function nextDice(){const T=G.T;return T.rolling.length+Math.min(T.rolling.filter(d=>d.face==='extra').length,supply());}
+function bustChance(){
+ const T=G.T,p=P();if(!T.card)return null;
+ const n=nextDice();if(!n)return null;
+ const faces=new Set();
+ const add=r=>{if(r.s==='wild')faces.add('wild');else{faces.add(r.s);faces.add('wild');if(has(p,'EXTRA2',r.s))faces.add('extra');}};
+ if(T.commit!==null)add(focusReq());else T.card.reqs.filter(isOpen).forEach(add);
+ if(!faces.size)return null;
+ return Math.pow(1-faces.size/6,n);
+}
+function stakeNow(){const T=G.T;if(!T.card)return 0;return T.completed.reduce((s,i)=>s+(G.mode==='ladder'?1:rv(T.card.reqs[i])),0);}
+function canRollAgain(){const T=G.T;return T.rollNo>0&&!T.done&&T.rolling.length>0&&T.lockedThisRoll>0;}
+
+// ================= AI =================
+function aiPickOffer(offers){const sc=c=>-c.reqs.reduce((x,r)=>x+r.n*(r.s==='wild'?1.6:1),0)+(c.ab.t==='START6'?1.5:0)+Math.random();return offers.slice().sort((a,b)=>sc(b)-sc(a))[0];}
+function aiChoose(){
+ const T=G.T,me=P();let best=null;
+ for(const c of allowedCards())c.reqs.forEach((r,i)=>{
+  if(!isOpen(r))return;const m=T.rolling.reduce((s,d)=>s+dieVal(d.face,r),0);if(!m)return;
+  const others=c.reqs.filter((x,j)=>j!==i&&isOpen(x)).length;
+  let sc=(G.mode==='ladder'?2:rv(r))*(m>=r.n?1:.3+.4*m/r.n);
+  if(m>=r.n&&!others)sc+=G.mode==='ladder'?6:4+(me.team[c.f]?0:2);
+  if(G.mode!=='ladder'&&m>=r.n&&others===1)sc-=1.5; // don't set the opponent up
+  sc+=Math.random()*.5;
+  if(!best||sc>best.sc)best={c,i,sc};
+ });return best;
+}
+async function aiLock(){
+ const T=G.T,r=focusReq(),alive=()=>G.T===T&&!T.done&&T.commit!==null;
+ const cand=T.rolling.filter(d=>dieVal(d.face,r)>0);
+ const main=cand.filter(d=>d.face!=='wild'||r.s==='wild'),wild=cand.filter(d=>d.face==='wild'&&r.s!=='wild');
+ let need=r.n-(T.prog[T.commit]||0),locked=0;
+ for(const d of main){if(need<=0||!alive())break;need-=dieVal(d.face,r);await lockDie(d);locked++;await sleep(380);}
+ if(!alive()||need<=0)return;
+ const k=wild.length>=need?need:(locked?0:1);
+ for(const d of wild.slice(0,k)){if(!alive())break;await lockDie(d);await sleep(380);}
+}
+function aiContinue(){
+ if(!canRollAgain())return false;
+ const st=stakeNow();if(st===0)return true;
+ const pb=bustChance();if(pb===null)return false;
+ let th=G.mode==='ladder'?(st>=2?.2:.3):(st>=6?.14:st>=3?.22:.32);
+ if(G.mode!=='ladder'&&G.players[1-G.cur].rep-P().rep>8)th+=.1;
+ if(G.mode==='ladder'&&G.players[1-G.cur].rung>P().rung)th+=.1;
+ return pb<th;
+}
+async function aiTurn(){
+ const T=G.T,alive=()=>G.T===T&&!T.done&&!G.over;
+ while(document.getElementById('modal').innerHTML)await sleep(300);
+ await sleep(900);
+ while(alive()){
+  if(T.rollNo===0){T.aiMsg='is rolling…';await doRoll();await sleep(800);continue;}
+  if(!T.mustRoll&&T.lockedThisRoll===0){
+   if(T.commit===null){const ch=aiChoose();if(!ch){await bust();break;}commit(ch.c,ch.i);const r=ch.c.reqs[ch.i];T.aiMsg=`picked ${SYM[r.s].e.repeat(r.n)} on ${ch.c.title}`;render();await sleep(900);}
+   T.aiMsg='is adding dice…';await aiLock();if(alive()&&T.lockedThisRoll===0&&!T.mustRoll){await bust();break;}await sleep(700);continue;
+  }
+  if(aiContinue()){T.aiMsg='rolls again!';render();await sleep(600);await doRoll();await sleep(800);}else{T.aiMsg='stops.';await stopTurn();}
+ }
+}
+
+// ================= UI =================
+const mine=()=>G&&!G.over&&!P().ai&&!G.T.done;
+const UI={
+ roll(){if(!mine()||busy)return;const T=G.T;
+  if(G.mode==='maths'&&T.rollNo&&canRollAgain()&&!T.answered&&stakeNow()>0&&(T.mq||0)<3)return mathsPrompt();
+  if(G.mode==='ladder'&&!T.card){mini('Choose a job first');return shake(document.querySelector('.offers'));}
+  if(T.rollNo&&!canRollAgain()){mini(T.rolling.length?'Put at least one die in your box first':'No dice left: stop to keep your boxes');return shake(document.querySelector('.roll'));}
+  doRoll();},
+ stop(){if(!mine()||busy||!G.T.rollNo)return;stopTurn();},
+ req(id,i,ev){if(!mine()||busy)return;
+  const c=(G.mode==='ladder'?[G.T.card]:G.market).find(x=>x&&x.id===id);if(!c)return;ev.stopPropagation();const T=G.T;
+  if(!T.rollNo){mini('Roll the dice first');return shake(ev.currentTarget);}
+  if(canCommit(c,i))return commit(c,i);
+  shake(ev.currentTarget);
+  mini(T.mustRoll?'Roll again first, or stop':!isOpen(c.reqs[i])?'That box is already full':T.commit!==null?'Fill your focus box first':!allowedCards().includes(c)?'Stick with the same job this turn':'None of your dice fit that box');
+ },
+ die(id,ev){if(!mine()||busy)return;const T=G.T;const d=T.rolling.find(x=>x.id===id);if(!d)return;
+  if(T.commit===null){mini(T.mustRoll?'Roll again first, or stop':'Pick a skill box first');return shake(ev.currentTarget);}
+  if(!dieVal(d.face,focusReq())){mini(`That die doesn't fit your ${SYM[focusReq().s].e} box`);return shake(ev.currentTarget);}
+  lockDie(d);
+ },
+ offer(i){if(!mine()||busy)return;const p=P();if(!p.offers)return;p.job=p.offers[i];p.offers=null;G.T.card=p.job;sfx('tap');render();},
+ info(id,ev){ev&&ev.stopPropagation();const all=[...(G.market||[]),...G.players.flatMap(p=>[p.job,...(p.offers||[]),...p.history,...Object.values(p.team).flat()])].filter(Boolean);const c=all.find(x=>x.id===id);if(!c)return;
+  modal(`<div style="color:${FAC[c.f].c};font-weight:800;font-size:.75rem">${FAC[c.f].i} ${FAC[c.f].n.toUpperCase()} · ${LV[lvl(c)].toUpperCase()} LEVEL</div><h2>${c.title}</h2><p>${c.desc}</p><div class="cc"><div><b>🧩 Skills</b>${skillMix(c)}</div><div><b>🎓 How people get in</b>${careerOf(c)[0]}</div><div><b>📚 Useful subjects</b>${careerOf(c)[1]}</div></div><p style="margin-top:12px"><b>⚡ Perk: ${c.ab.name}</b><br>${perkLong(c.ab)}</p><p style="color:var(--mute);font-style:italic">Why? ${c.ab.why}</p><button class="go" onclick="closeModal()">Got it</button>`);},
+ team(i){const p=G.players[i];const list=G.mode==='ladder'?p.history:Object.values(p.team).flat();
+  modal(`<h2>${i?'🤖 Rival\'s':'Your'} ${G.mode==='ladder'?'career':'team'}</h2>${list.length?list.map(c=>`<p><span class="chip" style="background:${FAC[c.f].c}">${FAC[c.f].i} ${c.title}</span><br><b>⚡ ${c.ab.name}</b>: ${perkLong(c.ab)}</p>`).join(''):'<p>Nobody yet.</p>'}${G.mode!=='ladder'?'<p style="font-size:.8rem;color:var(--mute)">Only the newest person in each sector uses their perk.</p>':''}<button class="go" onclick="closeModal()">Close</button>`);},
+ menu(){modal(`<h2>Menu</h2><button class="go" onclick="showRules('${G.mode}',true)">📖 How to play</button><button class="ghost" style="width:100%;margin-top:8px" onclick="startGame('${G.mode}')">🔄 Restart</button><button class="ghost" style="width:100%;margin-top:8px" onclick="showModes()">🎮 Change mode</button><button class="ghost" style="width:100%;margin-top:8px" onclick="soundOn=!soundOn;UI.menu()">${soundOn?'🔊 Sound on':'🔇 Sound off'}</button><button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Close</button>`);}
+};
+
+// ---------- coach ----------
+function coach(){
+ const T=G.T,p=P();
+ if(G.over)return{step:0,t:'Game over!'};
+ if(p.ai){return{step:0,t:T.iv?'🤖 Rival is in an interview…':`🤖 Rival ${T.aiMsg||'is thinking…'}`,ai:true};}
+ if(T.done)return{step:0,t:'…'};
+ if(G.mode==='ladder'&&!T.card)return{step:0,t:`Choose your next job (${LV[p.rung+1]} level).`};
+ if(T.iv)return{step:0,t:'🎤 Interview time!'};
+ if(busy)return{step:1,t:'Rolling…'};
+ if(!T.rollNo)return{step:1,t:`Your turn! Roll ${Math.min(12,5+(has(p,'START6')?1:0)+p.bonus)} dice.`,s:p.bonus?'⚡ You have a bonus die this turn.':''};
+ if(T.mustRoll){const n=nextDice();return{step:4,t:'✅ Box filled! Stop to keep it, or roll again to fill another box on this job.',s:n?`Next roll you must start a new box on ${T.card.title}.`:'You have no dice left, so stop now.'};}
+ if(T.commit===null)return{step:2,t:T.completed.length||T.locked.length?`Pick another box on ${T.card.title}.`:'Pick a skill box on a job. This is your focus.',s:hints()?'Glowing boxes match your dice.':''};
+ const r=focusReq(),need=r.n-(T.prog[T.commit]||0);
+ if(!T.lockedThisRoll)return{step:3,t:`Tap dice to put them in your ${SYM[r.s].e} box.`,s:`You must add at least one. ${need} more to fill it.`+(T.locked.length?'':' (You can still pick a different box.)')};
+ if(G.mode==='maths'&&stakeNow()>0&&!T.answered)return{step:4,t:`${need} more ${SYM[r.s].e} needed. Add more dice, or roll again?`,s:'You have points at risk, so pressing Roll gives you a maths question first.'};
+ return{step:4,t:`${need} more ${SYM[r.s].e} needed. Add more dice, or roll again?`,s:hints()?'Every die you add means one fewer to roll. Watch the meter!':'Every die you add means one fewer to roll.'};
+}
+
+// ---------- rendering ----------
+function stars(c){const L=lvl(c);return `<span class="stars">${'★'.repeat(L)}<i>${'★'.repeat(4-L)}</i></span>`;}
+function reqHtml(c,r,i){
+ const T=G.T,onTurn=T.card===c,me=!P().ai&&!G.over&&!busy;
+ const prog=onTurn&&isOpen(r)?Math.min(r.n,T.prog[i]||0):0;
+ let cls='rq tap';if(!isOpen(r))cls+=' o'+r.owner;
+ if(onTurn&&T.commit===i)cls+=' cur';
+ else if(hints()&&me&&canCommit(c,i))cls+=' can';
+ const ic=Array.from({length:r.n},(_,k)=>`<span class="${k<prog?'f':''}">${SYM[r.s].e}</span>`).join('');
+ const right=!isOpen(r)?`<span class="tok p${r.owner}">${r.owner?'🤖':'🧑'}</span>`:onTurn&&T.commit===i?'<span class="fb">FOCUS</span>':'';
+ return `<div class="${cls}" onclick="UI.req(${c.id},${i},event)"><span class="ic">${ic}</span><span class="v">${G.mode!=='ladder'?`${rv(r)}🏆`:''}${right}</span></div>`;
+}
+function jobHtml(c,extra='',click=''){
+ const open=c.reqs.filter(isOpen).length;
+ const badge=open===1&&c.reqs.length>1?`<div class="badge">🎤 1 box left, then the interview!</div>`:'';
+ const [route,subj]=careerOf(c),nx=nextSteps(c),on=G.flipped&&G.flipped.has(c.id);
+ const hd=`<div class="hd"><span>${FAC[c.f].i} ${FAC[c.f].n}</span>${stars(c)}</div>`;
+ return `<div class="job ${extra}" data-jid="${c.id}" style="--c:${FAC[c.f].c}" ${click}><div class="c3 ${on?'on':''}">
+ <div class="face fr">${hd}${c.tag?`<div class="otag">${c.tag}</div>`:''}<div class="tt">${c.title}</div>${c.tag?`<div class="odesc">${c.desc}</div>`:''}${badge}<div class="rqs">${c.reqs.map((r,i)=>reqHtml(c,r,i)).join('')}</div><div class="perk" onclick="UI.info(${c.id},event)">⚡ ${c.ab.name}: ${perkShort(c.ab)} <span>ⓘ</span></div><button class="fl" onclick="flipCard(${c.id},event)">🔄 Job details</button></div>
+ <div class="face bk">${hd}<div class="tt">${c.title}</div><div class="bkb"><div><b>💼 The job</b>${c.desc}</div><div><b>🧩 Skills</b>${skillMix(c)}</div><div><b>🎓 How to get in</b>${route}</div><div><b>📚 Subjects</b>${subj}</div><div><b>↗ Next step</b>${nx.length?nx.map(x=>x.title).join(' or '):'Top of the ladder!'}</div></div><button class="fl" onclick="flipCard(${c.id},event)">🔄 Back to the boxes</button></div>
+ </div></div>`;
+}
+function render(){
+ if(!G)return;const T=G.T,p=P(),app=document.getElementById('app'),human=!p.ai&&!G.over;
+ const C=coach();
+ const pills=G.players.map((q,i)=>{
+  let inner;
+  if(G.mode==='ladder')inner=`<div class="ladder">${[0,1,2,3].map(k=>`<div class="rung ${k<q.rung?'done p'+i:k===q.rung?'cur':''}"></div>`).join('')}</div><div class="rlab">${q.rung?q.history[q.rung-1].title:'Starting out'}${q.perks.length?` · ⚡${q.perks.length}`:''}</div>`;
+  else inner=`<div class="secs">${Object.keys(FAC).map(f=>{const n=(q.team[f]||[]).length;return `<span class="sec ${n?'got':''}" style="${n?`background:${FAC[f].c}`:''}">${FAC[f].i}${n>1?`<b>${n}</b>`:''}</span>`;}).join('')}</div>`;
+  return `<button class="pill p${i} ${G.cur===i&&!G.over?'on':''}" onclick="UI.team(${i})"><div class="row"><span class="nm">${i?'🤖 Rival':'🧑 You'}</span>${G.mode!=='ladder'?`<span class="pts">${q.rep}<small>🏆</small></span>`:`<span class="pts" style="font-size:.95rem">${LV[Math.min(q.rung+1,4)]}</span>`}</div>${inner}</button>`;
+ }).join('');
+ const stepNames=['Roll','Pick a box','Add dice','Roll or stop?'];
+ const steps=hints()&&!p.ai&&!G.over&&C.step?`<div class="stepper">${stepNames.map((s,k)=>`<span class="${C.step===k+1?'on':C.step>k+1?'past':''}">${k+1}. ${s}</span>`).join('')}</div>`:'';
+ // dice tray
+ const r=focusReq();
+ const dieH=d=>{let cls='die tap';if(d.fresh)cls+=' tumble';
+  if(hints()&&human&&!busy&&r){cls+=dieVal(d.face,r)?' ok':' dim';}
+  const pk=human&&r&&perkFor(d.face,r);
+  return `<button class="${cls}" onclick="UI.die(${d.id},event)">${pk?'<i class="pkb">⚡</i>':''}${SYM[d.face].e}<small>${pk?(d.face==='extra'?'counts ×2':'counts ⭐'):SYM[d.face].n}</small></button>`;};
+ const tray=`<div class="tray ${p.ai?'aitray':''}"><div class="lbl"><span>${p.ai?'🤖 Rival\'s dice':'🎲 Your dice'}</span><span>${supply()} left in the bag</span></div>
+  <div class="dice">${T.rolling.length?T.rolling.map(dieH).join(''):`<span class="empty">${T.rollNo?'No dice left to roll':'Press Roll to start'}</span>`}</div>
+  ${T.locked.length?`<div class="lbl"><span>In boxes this turn</span><span>${T.completed.length?`✅ ${T.completed.length} box${T.completed.length>1?'es':''} filled`:''}</span></div><div class="locked">${T.locked.map(d=>`<span class="die sm">${SYM[d.face].e}</span>`).join('')}</div>`:''}</div>`;
+ // board
+ let board='';
+ if(G.mode==='ladder'){
+  const you=G.players[0],riv=G.players[1];
+  if(you.offers&&!p.ai)board=`<div class="offers"><div class="oh">Tap a job to go for it</div>${you.offers.map((c,i)=>jobHtml(c,'pick',`onclick="UI.offer(${i})"`)).join('')}</div>`;
+  else{const show=p.ai?riv.job:you.job;board=show?`<div class="board one">${jobHtml(show,p.ai?'aifocus':'focus')}</div>`:'';}
+  const other=p.ai?you:riv;
+  if(other.job)board+=`<div class="rival"><span>${p.ai?'🧑 Your job':'🤖 Rival\'s job'}: <b style="color:var(--ink)">${other.job.title}</b></span><span class="mini">${other.job.reqs.map(q=>`<span class="${!isOpen(q)?'o1':''}">${SYM[q.s].e}${q.n}${!isOpen(q)?'✓':''}</span>`).join('')}</span></div>`;
+ }else{
+  const allowed=allowedCards();
+  board=`<div class="board m4">${G.market.map(c=>{let cls='';
+   if(T.card===c&&(T.commit!==null||T.locked.length||T.completed.length))cls=p.ai?'aifocus':'focus';
+   else if(T.rollNo&&!allowed.includes(c))cls='dead';
+   return jobHtml(c,cls);}).join('')}</div>`;
+ }
+ app.innerHTML=`<div class="top"><div class="logo">Hired<span>!</span><span class="mode">${MODES[G.mode].e} ${MODES[G.mode].n}</span></div><div style="display:flex;gap:6px"><button class="ib" onclick="showRules('${G.mode}',true)">?</button><button class="ib" onclick="UI.menu()">☰</button></div></div>
+ <div class="scores">${pills}</div>
+ <div class="coach ${C.ai?'ai':''}">${C.t}${C.s?`<small>${C.s}</small>`:''}</div>${steps}
+ ${G.mode==='ladder'&&!T.card?'':tray}${board}
+ <div class="ticker">${G.tick.map(t=>`<div>${t}</div>`).join('')}</div>`;
+ T.rolling.forEach(d=>d.fresh=false);
+ // action bar
+ let meter='';
+ const st=stakeNow(),unit=G.mode==='ladder'?' box':' 🏆';
+ if(human&&T.rollNo&&!T.done&&T.card&&hints()&&(G.mode!=='maths'||T.answered)){
+  const pb=bustChance();
+  if(pb!==null&&nextDice()){const pc=pct(pb),col=pc<20?'#22c55e':pc<40?'#eab308':'#ef4444';const lab=pc<20?'Safe-ish':pc<40?'Risky':'Very risky';
+   meter=`<div class="meter"><span>If you roll again:</span><div class="track"><div class="fill" style="width:${Math.max(3,pc)}%;background:${col}"></div></div><span style="color:${col}">${pc}% bust · ${lab}</span></div>`;}
+ }
+ const first=!T.rollNo;
+ const rollOk=human&&!busy&&!T.done&&(first?(G.mode!=='ladder'||!!T.card):canRollAgain());
+ const stopOk=human&&!busy&&!T.done&&T.rollNo>0;
+ const n=first?Math.min(12,5+(has(p,'START6')?1:0)+p.bonus):nextDice();
+ const risk=!first&&st?`<small>risking ${st}${unit}${st>1&&G.mode==='ladder'?'es':''}</small>`:!first&&hints()?'<small>nothing to lose yet</small>':'';
+ const partial=T.commit!==null&&(T.prog[T.commit]||0)>0;
+ const stopSub=st?`<small>keep ${st}${unit}${st>1&&G.mode==='ladder'?'es':''}${partial?' (half-filled box is lost)':''}</small>`:'<small>end turn</small>';
+ document.getElementById('bar').innerHTML=G.over?'':`<div class="in">${meter}<div class="btns"><button class="big roll" onclick="UI.roll()" ${rollOk?'':'disabled'}>🎲 Roll ${n} ${n===1?'die':'dice'}${risk}</button><button class="big stop" onclick="UI.stop()" ${stopOk?'':'disabled'}>✋ Stop${stopSub}</button></div></div>`;
+}
+showModes();
+
+</script>
+</body>
+</html>
